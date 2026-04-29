@@ -21,6 +21,7 @@
 #include "consistency_report.h"
 #include "construction_category.h"
 #include "construction_group.h"
+#include "construction_search.h"
 #include "coordinate_conversions.h"
 #include "crafting_quality.h"
 #include "cursesdef.h"
@@ -1130,19 +1131,23 @@ std::optional<construction_id> construction_menu( const bool blueprint )
                 }
                 const auto match_item = []( const item_comp & comp, const std::string & term ) -> bool {
                     const std::string comp_name = item::nname( comp.type, comp.count );
-                    return lcmatch( comp_name, term ) || lcmatch( comp.type.str(), term );
+                    return construction_search::basic_match( comp_name, term ) ||
+                           construction_search::basic_match( comp.type.str(), term );
                 };
                 const auto match_tool = []( const tool_comp & tool, const std::string & term ) -> bool {
                     const std::string tool_name = item::nname( tool.type, tool.count );
-                    return lcmatch( tool_name, term ) || lcmatch( tool.type.str(), term );
+                    return construction_search::basic_match( tool_name, term ) ||
+                           construction_search::basic_match( tool.type.str(), term );
                 };
                 const auto match_quality = []( const quality_requirement & quality_req,
                 const std::string & term ) -> bool {
                     const std::string quality_name = quality_req.type->name.translated();
-                    return lcmatch( quality_name, term ) || lcmatch( quality_req.type.str(), term );
+                    return construction_search::basic_match( quality_name, term ) ||
+                           construction_search::basic_match( quality_req.type.str(), term );
                 };
                 const auto match_skill = []( const skill_id & skill, const std::string & term ) -> bool {
-                    return lcmatch( skill.obj().name(), term ) || lcmatch( skill.str(), term );
+                    return construction_search::basic_match( skill.obj().name(), term ) ||
+                           construction_search::basic_match( skill.str(), term );
                 };
                 const auto match_description = []( const map_data_common_t *tile,
                 const std::string & term ) -> bool {
@@ -1150,7 +1155,7 @@ std::optional<construction_id> construction_menu( const bool blueprint )
                     {
                         return false;
                     }
-                    return lcmatch( tile->description.translated(), term );
+                    return construction_search::basic_match( tile->description.translated(), term );
                 };
                 const auto any_option_matches = [&]( const std::function<bool( const construction * )> &pred )
                 {
@@ -1243,20 +1248,20 @@ std::optional<construction_id> construction_menu( const bool blueprint )
                                 return false;
                         }
                     }
-                    const bool name_match = lcmatch( group_id->name(), token );
+                    const bool name_match = construction_search::group_name_match( group_id->name(), token );
                     if( name_match ) {
                         return true;
                     }
                     return any_option_matches( [&]( const construction * con ) {
                         if( !con->post_terrain.is_empty() ) {
                             const ter_t &result_ter = con->post_terrain.obj();
-                            if( lcmatch( result_ter.name(), token ) ) {
+                            if( construction_search::basic_match( result_ter.name(), token ) ) {
                                 return true;
                             }
                         }
                         if( !con->post_furniture.is_empty() ) {
                             const furn_t &result_furn = con->post_furniture.obj();
-                            if( lcmatch( result_furn.name(), token ) ) {
+                            if( construction_search::basic_match( result_furn.name(), token ) ) {
                                 return true;
                             }
                         }
